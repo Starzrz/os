@@ -67,8 +67,6 @@ PUBLIC int kernel_main()
 		p_proc->regs.esp = (u32)p_task_stack;
 		p_proc->regs.eflags = eflags;
 
-		p_proc->nr_tty = 0;
-
 		p_task_stack -= p_task->stacksize;
 		p_proc++;
 		p_task++;
@@ -77,12 +75,7 @@ PUBLIC int kernel_main()
 
 	proc_table[0].ticks = proc_table[0].priority = 15;
 	proc_table[1].ticks = proc_table[1].priority =  5;
-	proc_table[2].ticks = proc_table[2].priority =  5;
-	proc_table[3].ticks = proc_table[3].priority =  5;
-
-        proc_table[1].nr_tty = 0;
-        proc_table[2].nr_tty = 1;
-        proc_table[3].nr_tty = 1;
+	proc_table[2].ticks = proc_table[2].priority =  3;
 
 	k_reenter = 0;
 	ticks = 0;
@@ -104,8 +97,8 @@ void TestA()
 {
 	int i = 0;
 	while (1) {
-		printf("<Ticks:%x>", get_ticks());
-		milli_delay(200);
+		/* disp_str("A."); */
+		milli_delay(10);
 	}
 }
 
@@ -116,8 +109,8 @@ void TestB()
 {
 	int i = 0x1000;
 	while(1){
-		printf("B");
-		milli_delay(200);
+		/* disp_str("B."); */
+		milli_delay(10);
 	}
 }
 
@@ -128,7 +121,7 @@ void TestC()
 {
 	int i = 0x2000;
 	while(1){
-		printf("C");
-		milli_delay(200);
+		/* disp_str("C."); */
+		milli_delay(10);
 	}
 }
