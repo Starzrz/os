@@ -1,0 +1,6 @@
+在学长代码上做修改
+1.运行的时候要make image,然后bochs
+2.可以改变main.c里面kernel_main()函数里的CHAIRS变量的值来改变运行结果。
+3.运行时开始显示8或10个customer，需要等待一会儿会显示之后进来的customer
+4.sys_process_sleep函数和sys_dis_str函数以及PV操作都写在proc.c以及syscall.asm中
+5.A B C D E五个进程都写在main.c中

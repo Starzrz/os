@@ -1,9 +1,14 @@
+//////////////////////////////////////////////////////////////////////////////////////
+#define MAX_QUEUE_SIZE 10
+typedef struct queue  
+{    
+    int front;  
+    int rear;  
+    int queue_array[MAX_QUEUE_SIZE] ;  
+      
+}SqQueue;  
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                            proto.h
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                                                    Forrest Yu, 2005
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
 
 /* klib.asm */
 PUBLIC void	out_byte(u16 port, u8 value);
@@ -25,6 +30,8 @@ void restart();
 void TestA();
 void TestB();
 void TestC();
+void TestD();
+void TestE();
 
 /* i8259.c */
 PUBLIC void put_irq_handler(int irq, irq_handler handler);
@@ -32,25 +39,23 @@ PUBLIC void spurious_irq(int irq);
 
 /* clock.c */
 PUBLIC void clock_handler(int irq);
-PUBLIC void init_clock();
 
-/* keyboard.c */
-PUBLIC void init_keyboard();
-
-/* tty.c */
-PUBLIC void task_tty();
-PUBLIC void in_process(TTY* p_tty, u32 key);
-
-/* console.c */
-PUBLIC void out_char(CONSOLE* p_con, char ch);
-PUBLIC void scroll_screen(CONSOLE* p_con, int direction);
 
 /* 以下是系统调用相关 */
 
 /* proc.c */
 PUBLIC  int     sys_get_ticks();        /* sys_call */
+PUBLIC	void	sys_process_sleep(int i);
+PUBLIC  void    sys_disp_str(char* str);
+PUBLIC  void    sys_sem_p(int ID,int p,SqQueue* s);
+PUBLIC  void    sys_sem_v(int ID,SqQueue* s);
+PUBLIC	void 	sys_color_output(int color,char* str);
 
 /* syscall.asm */
 PUBLIC  void    sys_call();             /* int_handler */
 PUBLIC  int     get_ticks();
+PUBLIC  void    process_sleep(int i);
+PUBLIC  void    my_disp_str(char* str);
+PUBLIC  void    sem_p(int ID,int p,SqQueue* s);
+PUBLIC  void    sem_v(int ID,SqQueue* s);
 

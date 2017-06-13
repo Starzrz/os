@@ -8,11 +8,9 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "tty.h"
-#include "console.h"
+#include "proto.h"
 #include "proc.h"
 #include "global.h"
-#include "proto.h"
 
 
 /* 本文件内函数声明 */
@@ -267,9 +265,9 @@ PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int efl
 
 	/* 通过打印空格的方式清空屏幕的前五行，并把 disp_pos 清零 */
 	disp_pos = 0;
-	for(i=0;i<80*5;i++){
+	/*for(i=0;i<80*5;i++){
 		disp_str(" ");
-	}
+	}*/
 	disp_pos = 0;
 
 	disp_color_str("Exception! --> ", text_color);

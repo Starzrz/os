@@ -12,6 +12,12 @@
 #endif
 
 EXTERN	int		ticks;
+EXTERN	int		mutex;
+EXTERN	int		barbers;
+EXTERN	int		customers;
+EXTERN	int		waiting;
+EXTERN	int		CHAIRS;
+EXTERN	int		cusid;
 
 EXTERN	int		disp_pos;
 EXTERN	u8		gdt_ptr[6];	// 0~15:Limit  16~47:Base
@@ -24,13 +30,8 @@ EXTERN	u32		k_reenter;
 EXTERN	TSS		tss;
 EXTERN	PROCESS*	p_proc_ready;
 
-EXTERN	int		nr_current_console;
-
 extern	PROCESS		proc_table[];
 extern	char		task_stack[];
 extern  TASK            task_table[];
 extern	irq_handler	irq_table[];
-extern	TTY		tty_table[];
-extern  CONSOLE         console_table[];
-
 

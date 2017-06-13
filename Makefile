@@ -13,19 +13,18 @@ ENTRYOFFSET	=   0x400
 # Programs, flags, etc.
 ASM		= nasm
 DASM		= ndisasm
-CC		= gcc
-LD		= ld
+CC		= gcc -m32
+LD		= ld -m elf_i386
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin
+CFLAGS		= -I include/ -c -fno-builtin -fno-stack-protector
 LDFLAGS		= -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 # This Program
 ORANGESBOOT	= boot/boot.bin boot/loader.bin
 ORANGESKERNEL	= kernel.bin
-OBJS		= kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o\
-			kernel/clock.o kernel/keyboard.o kernel/tty.o kernel/console.o\
+OBJS		= kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o kernel/clock.o\
 			kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o\
 			lib/kliba.o lib/klib.o lib/string.o
 DASMOUTPUT	= kernel.bin.asm
@@ -35,7 +34,7 @@ DASMOUTPUT	= kernel.bin.asm
 
 # Default starting position
 nop :
-	@echo "why not \`make image' huh? :)"
+	@echo "please make image"
 
 everything : $(ORANGESBOOT) $(ORANGESKERNEL)
 
@@ -55,10 +54,10 @@ disasm :
 # We assume that "a.img" exists in current folder
 buildimg :
 	dd if=boot/boot.bin of=a.img bs=512 count=1 conv=notrunc
-	sudo mount -o loop a.img /mnt/floppy/
-	sudo cp -fv boot/loader.bin /mnt/floppy/
-	sudo cp -fv kernel.bin /mnt/floppy
-	sudo umount /mnt/floppy
+	sudo mount -o loop a.img /mnt
+	sudo cp -fv boot/loader.bin /mnt
+	sudo cp -fv kernel.bin /mnt
+	sudo umount /mnt
 
 boot/boot.bin : boot/boot.asm boot/include/load.inc boot/include/fat12hdr.inc
 	$(ASM) $(ASMBFLAGS) -o $@ $<
@@ -84,15 +83,6 @@ kernel/main.o: kernel/main.c include/type.h include/const.h include/protect.h in
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/clock.o: kernel/clock.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-kernel/keyboard.o: kernel/keyboard.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-kernel/tty.o: kernel/tty.c
-	$(CC) $(CFLAGS) -o $@ $<
-
-kernel/console.o: kernel/console.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/i8259.o: kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h

@@ -1,4 +1,3 @@
-
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                             main.c
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -8,12 +7,28 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
+#include "proto.h"
 #include "string.h"
 #include "proc.h"
-#include "tty.h"
-#include "console.h"
 #include "global.h"
-#include "proto.h"
+
+SqQueue S;
+SqQueue Init_Queue()            /*  队列初始化  */  
+{      
+    SqQueue S;  
+    S.front=S.rear=0;    
+    return (S);  
+}  
+int push(SqQueue *S,int e)      /*  使数据元素e进队列成为新的队尾  */  
+{    
+    (*S).queue_array[(*S).rear]=e;    /* e成为新的队尾  */  
+    (*S).rear++ ;                     /*  队尾指针加1  */  
+}  
+int pop(SqQueue *S,int *e )     /*弹出队首元素*/  
+{    
+    *e=(*S).queue_array[(*S).front] ;    
+    (*S).front++;    
+}   
 
 
 /*======================================================================*
@@ -21,8 +36,6 @@
  *======================================================================*/
 PUBLIC int kernel_main()
 {
-	disp_str("-----\"kernel_main\" begins-----\n");
-
 	TASK*		p_task		= task_table;
 	PROCESS*	p_proc		= proc_table;
 	char*		p_task_stack	= task_stack + STACK_SIZE_TOTAL;
@@ -61,24 +74,44 @@ PUBLIC int kernel_main()
 		p_proc++;
 		p_task++;
 		selector_ldt += 1 << 3;
+		proc_table[i].ticks = proc_table[i].isWait = 0;
 	}
 
-	proc_table[0].ticks = proc_table[0].priority = 15;
-	proc_table[1].ticks = proc_table[1].priority =  5;
-	proc_table[2].ticks = proc_table[2].priority =  3;
 
 	k_reenter = 0;
 	ticks = 0;
+	
+	waiting = 0;
+	mutex = 1;
+	barbers = 0;
+	customers = 0;
+	CHAIRS = 3;
+	cusid = 0;
 
 	p_proc_ready	= proc_table;
 
-	init_clock();
-        init_keyboard();
+        /* 初始化 8253 PIT */
+        out_byte(TIMER_MODE, RATE_GENERATOR);
+        out_byte(TIMER0, (u8) (TIMER_FREQ/HZ) );
+        out_byte(TIMER0, (u8) ((TIMER_FREQ/HZ) >> 8));
+
+        put_irq_handler(CLOCK_IRQ, clock_handler); /* 设定时钟中断处理程序 */
+        enable_irq(CLOCK_IRQ);                     /* 让8259A可以接收时钟中断 */
+
+	disp_pos=0;
+	for(i=0;i<80*25;i++){
+		disp_str(" ");
+	}
+	disp_pos=0;
+
+	S=Init_Queue();
 
 	restart();
 
 	while(1){}
 }
+
+
 
 /*======================================================================*
                                TestA
@@ -87,7 +120,6 @@ void TestA()
 {
 	int i = 0;
 	while (1) {
-		/* disp_str("A."); */
 		milli_delay(10);
 	}
 }
@@ -99,19 +131,123 @@ void TestB()
 {
 	int i = 0x1000;
 	while(1){
-		/* disp_str("B."); */
-		milli_delay(10);
+		sys_sem_p(CUSTOMERS,1,&S);
+		sys_sem_p(MUTEX,1,&S);
+		waiting--;
+		sys_sem_v(BARBERS,&S);
+		sys_sem_v(MUTEX,&S);
+		my_milli_delay(3000);
+		sys_color_output(0x07,"WAKE");
+		my_disp_str("\n");
+
 	}
 }
 
 /*======================================================================*
-                               TestB
+                               TestC
  *======================================================================*/
 void TestC()
-{
+{	milli_delay(3000);
 	int i = 0x2000;
 	while(1){
-		/* disp_str("C."); */
-		milli_delay(10);
+	cusid = cusid+1;
+	char *temp;
+	itoa(temp,cusid);
+	sys_color_output(0x02,temp);
+	sys_color_output(0x02," CUS COME");
+	my_disp_str("\n");
+	sys_sem_p(MUTEX,2,&S);
+	if(waiting<CHAIRS){
+		waiting++;
+		sys_sem_v(CUSTOMERS,&S);
+		sys_sem_v(MUTEX,&S);
+		sys_color_output(0x02,"A WAIT");
+		my_disp_str("\n");
+		sys_sem_p(BARBERS,2,&S);
+		sys_color_output(0x02,"A CUT");
+		my_disp_str("\n");
+			
+	}
+	else{
+		sys_sem_v(MUTEX,&S);
+		sys_color_output(0x02,"LEAVE");
+		my_disp_str("\n");	
+	}
+	milli_delay(3000);
 	}
 }
+
+/*======================================================================*
+                               TestD
+ *======================================================================*/
+void TestD()
+{	milli_delay(3000);
+
+	int i = 0x3000;
+	while(1){
+	cusid = cusid+1;
+	char temp[24];
+	itoa(temp,cusid);
+	sys_color_output(0x03,temp);
+	sys_color_output(0x03," CUS COME");
+	my_disp_str("\n");
+	sys_sem_p(MUTEX,3,&S);
+	if(waiting<CHAIRS){
+		waiting++;
+		sys_sem_v(CUSTOMERS,&S);
+		sys_sem_v(MUTEX,&S);
+		sys_color_output(0x03,"B WAIT");
+		my_disp_str("\n");
+		sys_sem_p(BARBERS,3,&S);
+		sys_color_output(0x03,"B CUT");
+		my_disp_str("\n");	
+		
+	}
+	else{
+		sys_sem_v(MUTEX,&S);
+		sys_color_output(0x03,"LEAVE");
+		my_disp_str("\n");		
+	}
+	milli_delay(3000);
+	}
+
+	
+}
+
+/*======================================================================*
+                               TestE
+ *======================================================================*/
+void TestE()
+{
+	milli_delay(3000);
+	int i = 0x4000;
+	while(1){
+	cusid = cusid+1;
+	char * temp;
+	itoa(temp,cusid);
+	sys_color_output(0x04,temp);
+	sys_color_output(0x04," CUS COME");
+	my_disp_str("\n");
+	sys_sem_p(MUTEX,4,&S);
+	if(waiting<CHAIRS){
+		waiting++;
+		sys_sem_v(CUSTOMERS,&S);
+		sys_sem_v(MUTEX,&S);
+		sys_color_output(0x04,"C WAIT");
+		my_disp_str("\n");
+		sys_sem_p(BARBERS,4,&S);
+		sys_color_output(0x04,"C CUT");
+		my_disp_str("\n");
+			
+	}
+	else{
+		sys_sem_v(MUTEX,&S);		
+		sys_color_output(0x04,"LEAVE");
+		my_disp_str("\n");	
+	}
+	milli_delay(3000);
+	}
+	
+	
+}
+

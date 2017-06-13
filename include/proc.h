@@ -1,4 +1,3 @@
-
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                                proc.h
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -35,7 +34,8 @@ typedef struct s_proc {
 	DESCRIPTOR ldts[LDT_SIZE]; /* local descriptors for code and data */
 
         int ticks;                 /* remained ticks */
-        int priority;
+  //      int priority;
+	int isWait;
 
 	u32 pid;                   /* process id passed in from MM */
 	char p_name[16];           /* name of the process */
@@ -48,17 +48,24 @@ typedef struct s_task {
 }TASK;
 
 
+
+
+
+
 /* Number of tasks */
-#define NR_TASKS	4
+#define NR_TASKS	5
 
 /* stacks of tasks */
-#define STACK_SIZE_TTY		0x8000
 #define STACK_SIZE_TESTA	0x8000
 #define STACK_SIZE_TESTB	0x8000
 #define STACK_SIZE_TESTC	0x8000
+#define STACK_SIZE_TESTD	0x8000
+#define STACK_SIZE_TESTE	0x8000
 
-#define STACK_SIZE_TOTAL	(STACK_SIZE_TTY + \
-				STACK_SIZE_TESTA + \
+#define STACK_SIZE_TOTAL	(STACK_SIZE_TESTA + \
 				STACK_SIZE_TESTB + \
-				STACK_SIZE_TESTC)
+				STACK_SIZE_TESTC + \
+				STACK_SIZE_TESTD + \
+				STACK_SIZE_TESTE)
+
 

@@ -8,47 +8,40 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "tty.h"
-#include "console.h"
+#include "proto.h"
 #include "string.h"
 #include "proc.h"
 #include "global.h"
-#include "proto.h"
 
 
 /*======================================================================*
                                itoa
  *======================================================================*/
-PUBLIC char * itoa(char * str, int num)/* 数字前面的 0 不被显示出来, 比如 0000B800 被显示成 B800 */
+PUBLIC char * itoa(char * str, int number)/* 数字前面的 0 不被显示出来, 比如 0000B800 被显示成 B800 */
 {
-	char *	p = str;
-	char	ch;
-	int	i;
-	int	flag = 0;
+	
+     char ch[100],*p=str;
+     int sign=1,i;
 
-	*p++ = '0';
-	*p++ = 'x';
+     if(number<0)
+     {
+          sign=-1;
+          number=-number;
+     }
 
-	if(num == 0){
-		*p++ = '0';
-	}
-	else{	
-		for(i=28;i>=0;i-=4){
-			ch = (num >> i) & 0xF;
-			if(flag || (ch > 0)){
-				flag = 1;
-				ch += '0';
-				if(ch > '9'){
-					ch += 7;
-				}
-				*p++ = ch;
-			}
-		}
-	}
-
-	*p = 0;
-
-	return str;
+     for(i=0;number!=0;number/=10,i++)
+     {
+          ch[i]=number%10 + '0';
+     }
+     
+     if(sign==-1)
+          *p='-';
+     i--;
+     for(;i>=0;i--,p++)
+          *p=ch[i];
+     
+     *p='\0';
+     return str;
 }
 
 
